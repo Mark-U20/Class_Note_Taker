@@ -14,29 +14,36 @@ function getNoteData() {
 }
 
 
+
+
 note_router.get('/notes', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/notes.html'));
 });
 
 
-
+//should read the db.json file and return all the notes as JSON
 note_router.get('/api/notes', (req, res) => {
     getNoteData()
         .then(data => {
             res.json(data);
+            console.log(data);
         });
+
+
 });
 
+//should receive a new note to save on the request body,
+//add it to the bd.json file, and return the new note to the client
 note_router.post('/api/notes', (req, res) => {
     const newNote = {
-        id: uuid(),
+        id: uuid().slice(0, 5),
         title: req.body.title,
         text: req.body.text,
     };
     getNoteData()
         .then(data => {
             data.push(newNote);
-            return fs.promises.writeFile(db_path, JSON.stringify(data));
+            return fs.promises.writeFile(db_path, JSON.stringify(data), null, 2);
         })
         .then(() => {
             res.json(newNote);
@@ -45,7 +52,9 @@ note_router.post('/api/notes', (req, res) => {
             console.error(err);
         }
         );
-    
+        
+  
+
 });
 
 
