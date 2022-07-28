@@ -26,6 +26,7 @@ const hide = (elem) => {
 let activeNote = {};
 
 const getNotes = () =>
+console.log('getNotes');
   fetch('/api/notes', {
     method: 'GET',
     headers: {
