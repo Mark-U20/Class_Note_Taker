@@ -29,31 +29,15 @@ const getNotes = () =>
   fetch('/api/notes', {
     method: 'GET',
     headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     },
   });
-
-const test = () => {
-  getNotes()
-    .then(response => response.json())
-    .then(data => {
-      console.log(data);
-    }
-    )
-    .catch(err => {
-      console.error("Error: ", err);
-    }
-    );
-}
-
 
 const saveNote = (note) =>
   fetch('/api/notes', {
     method: 'POST',
     headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify(note),
   });
@@ -62,8 +46,7 @@ const deleteNote = (id) =>
   fetch(`/api/notes/${id}`, {
     method: 'DELETE',
     headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     },
   });
 
@@ -89,11 +72,8 @@ const handleNoteSave = () => {
     text: noteText.value,
   };
   saveNote(newNote).then(() => {
-    console.log('Note saved');
     getAndRenderNotes();
-    console.log('notes rendered');
     renderActiveNote();
-    console.log('active note rendered');
   });
 };
 
@@ -138,11 +118,12 @@ const handleRenderSaveBtn = () => {
 
 // Render the list of note titles
 const renderNoteList = async (notes) => {
-
+  console.log(JSON.stringify(notes, null, 2));
   let jsonNotes = await notes.json();
   if (window.location.pathname === '/notes') {
     noteList.forEach((el) => (el.innerHTML = ''));
   }
+
   let noteListItems = [];
 
   // Returns HTML element with or without a delete button
@@ -201,4 +182,3 @@ if (window.location.pathname === '/notes') {
 }
 
 getAndRenderNotes();
-

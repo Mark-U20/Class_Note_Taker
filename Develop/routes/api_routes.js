@@ -4,78 +4,69 @@ const path = require('path');
 const uuid = require('uuid').v4;
 const db_path = path.join(__dirname, '../db/db.json');
 
-
-function getNoteData() {
-    return fs.promises.readFile(db_path, 'utf8')
-        .then(data => JSON.parse(data))
-        .catch(err => {
-            console.error(err);
-        });
+async function getNoteData() {
+  return new Promise((resolve, reject) => {
+    fs.readFile(db_path, 'utf8', (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(data);
+      }
+    });
+  });
 }
 
-
-
-
 note_router.get('/notes', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/notes.html'));
+  console.log('get notes');
+
+  getNoteData()
+    .then(data => {
+      console.log(`sending back: ${JSON.stringify(JSON.parse(data), null, 2)}`);
+      res.json(JSON.parse(data));
+    });
 });
 
 
-//should read the db.json file and return all the notes as JSON
-note_router.get('/api/notes', (req, res) => {
-    getNoteData()
-        .then(data => {
-            res.json(data);
-            console.log(data);
-        });
+note_router.post('/notes', async (req, res) => {
+  const newNote = {
+    id: uuid().slice(0, 5),
+    title: req.body.title,
+    text: req.body.text,
+  };
 
+  let notes = await getNoteData()
+  notes = JSON.parse(notes);
+  notes.push(newNote);
 
-});
-
-//should receive a new note to save on the request body,
-//add it to the bd.json file, and return the new note to the client
-note_router.post('/api/notes', (req, res) => {
-    const newNote = {
-        id: uuid().slice(0, 5),
-        title: req.body.title,
-        text: req.body.text,
-    };
-    getNoteData()
-        .then(data => {
-            data.push(newNote);
-            return fs.promises.writeFile(db_path, JSON.stringify(data), null, 2);
-        })
-        .then(() => {
-            res.json(newNote);
-        })
-        .catch(err => {
-            console.error(err);
-        }
-        );
-        
-  
+  fs.writeFile(db_path, JSON.stringify(notes, null, 2), (err) => {
+    if (err) {
+      console.error(err);
+    }
+    else {
+      res.status(201).json(newNote);
+    }
+  });
 
 });
 
 
 note_router.delete('/notes/:id', (req, res) => {
-    getNoteData()
-        .then(data => {
-            const noteId = req.params.id;
-            const noteIndex = data.findIndex(note => note.id === noteId);
-            if (noteIndex === -1) {
-                res.status(404).json({ message: 'Note not found' });
-            } else {
-                data.splice(noteIndex, 1);
-                return fs.promises.writeFile(db_path, JSON.stringify(data));
-            }
-        })
-        .then(() => {
-            res.json({ message: 'Note deleted' });
-        })
-        .catch(err => {
-            console.error(err);
-        });
+  getNoteData()
+    .then(data => {
+      const noteId = req.params.id;
+      console.log(`deleting note with id: ${noteId}`);
+
+      let notes = JSON.parse(data);
+      notes = notes.filter(note => note.id !== noteId);
+      fs.writeFile(db_path, JSON.stringify(notes, null, 2), (err) => {
+        if (err) {
+          console.error(err);
+        }
+        else {
+          res.status(200).json({ message: 'Note deleted' });
+        }
+      })
+    })
 });
 
 module.exports = note_router;
